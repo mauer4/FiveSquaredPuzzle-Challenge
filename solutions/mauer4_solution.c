@@ -269,6 +269,5 @@ int main() {
     } else {
         printf("{\"error\": \"No valid solution found\"}\n");
     }
-    
     return 0;
 }
