@@ -1,0 +1,65 @@
+name: Test Solution
+
+on:
+  push:
+    paths:
+      - 'solutions/**'
+  pull_request:
+    paths:
+      - 'solutions/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Ensure only solution files were modified
+        id: check_diff
+        run: |
+          # List files changed in this commit/PR.
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          echo "Changed files: $CHANGED_FILES"
+          # Fail if any file outside 'solutions/' is modified.
+          if echo "$CHANGED_FILES" | grep -qv '^solutions/'; then
+            echo "Error: Only files under the solutions/ directory are allowed to be modified."
+            exit 1
+          fi
+
+      - name: Find solution file
+        id: find_solution
+        run: |
+          # Look for a file matching the pattern *_solution.* under solutions/
+          SOLUTION_FILE=$(find solutions -type f -regex '.*\/.*_solution\..*' | head -n 1)
+          if [ -z "$SOLUTION_FILE" ]; then
+            echo "No solution file found under the solutions/ directory!"
+            exit 1
+          fi
+          echo "Solution file found: $SOLUTION_FILE"
+          echo "::set-output name=solution::$SOLUTION_FILE"
+
+      - name: Set up Python for test scripts
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Make test scripts executable
+        run: chmod +x scripts/run_tests.sh
+
+      - name: Run tests on the solution file
+        run: ./scripts/run_tests.sh "${{ steps.find_solution.outputs.solution }}"
+
+
+      - name: Update README with Leaderboard
+        if: success()
+        run: |
+          cd scripts
+          ./update_readme.py
+          # Optionally, commit and push the updated README back to the repo:
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add ../README.md
+          git commit -m "Update leaderboard in README [skip ci]"
+          git push
