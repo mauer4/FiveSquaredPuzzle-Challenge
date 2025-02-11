@@ -63,7 +63,7 @@ jobs:
         if: success()
         run: |
           cd scripts
-          ./update_readme.py
+          python update_readme.py
           # Optionally, commit and push the updated README back to the repo:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
