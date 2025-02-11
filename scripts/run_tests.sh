@@ -58,6 +58,7 @@ RUNTIME=$(echo "scale=3; ($END_TIME - $START_TIME) / 1000000000" | bc)
 # Call the validation script (which also updates the leaderboard)
 # We compute its path relative to the script's location.
 VALIDATION_SCRIPT="${SCRIPT_DIR}/../scripts/validate_solution.py"
+cd "$SCRIPT_DIR"
 python3 "$VALIDATION_SCRIPT" "$OUTPUT" "$RUNTIME" "$SOLUTION"
 RESULT=$?
 
