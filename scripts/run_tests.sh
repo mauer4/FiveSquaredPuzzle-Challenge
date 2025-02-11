@@ -7,7 +7,18 @@ if [ -z "$1" ]; then
 fi
 
 SOLUTION="$1"
-INPUT_FILE="../config/input.json"
+
+# Determine the directory of this script.
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Build the path to the input file relative to the script's location.
+INPUT_FILE="${SCRIPT_DIR}/../config/input.json"
+
+# Optional: Check if the input file exists.
+if [ ! -f "$INPUT_FILE" ]; then
+    echo "Error: Input file $INPUT_FILE does not exist."
+    exit 1
+fi
 
 # Determine the MIME type of the solution file.
 FILE_TYPE=$(file --mime-type -b "$SOLUTION")
@@ -45,8 +56,9 @@ END_TIME=$(date +%s%N)
 RUNTIME=$(echo "scale=3; ($END_TIME - $START_TIME) / 1000000000" | bc)
 
 # Call the validation script (which also updates the leaderboard)
-# Passing the original solution file name as the 3rd argument.
-python3 ../scripts/validate_solution.py "$OUTPUT" "$RUNTIME" "$SOLUTION"
+# We compute its path relative to the script's location.
+VALIDATION_SCRIPT="${SCRIPT_DIR}/../scripts/validate_solution.py"
+python3 "$VALIDATION_SCRIPT" "$OUTPUT" "$RUNTIME" "$SOLUTION"
 RESULT=$?
 
 if [ $RESULT -eq 0 ]; then
